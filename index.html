@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ยาความเสี่ยงสูง | โรงพยาบาลนาคู</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="app-header">
+    <img class="moph-logo" src="https://upload.wikimedia.org/wikipedia/th/thumb/2/28/Seal_Ministry_of_Public_Health_of_Thailand.png/200px-Seal_Ministry_of_Public_Health_of_Thailand.png" alt="ตราสัญลักษณ์กระทรวงสาธารณสุข" onerror="this.style.display='none'">
+    <h1>💊 บัญชียาความเสี่ยงสูง</h1>
+    <p>โรงพยาบาลนาคู &middot; ฝ่ายเภสัชกรรม</p>
+    <span class="badge">High Alert Medications (HAD)</span>
+  </header>
+
+  <div class="container">
+
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="ค้นหาชื่อยา, ชื่อสามัญ หรือกลุ่มยา...">
+    </div>
+
+
+
+
+    <div class="stats-bar">
+      <div class="count">พบยาทั้งหมด <b id="resultCount">0</b> รายการ</div>
+    </div>
+
+    <div class="drug-grid" id="drugGrid"></div>
+
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <div class="emoji">🔎</div>
+      <p>ไม่พบรายการยาที่ค้นหา</p>
+    </div>
+
+  </div>
+
+  <footer>
+    © โรงพยาบาลนาคู | ฝ่ายเภสัชกรรม — ข้อมูลนี้จัดทำเพื่อใช้ภายในหน่วยงาน
+  </footer>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <button class="modal-close" id="modalClose">✕</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script>
+    let allDrugs = [];
+
+    async function loadDrugs() {
+      try {
+        const res = await fetch('drugs.json');
+        allDrugs = await res.json();
+      } catch (e) {
+        allDrugs = [];
+        console.error('โหลด drugs.json ไม่สำเร็จ', e);
+      }
+      renderDrugs();
+    }
+
+    function renderDrugs() {
+      const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+      const grid = document.getElementById('drugGrid');
+      const empty = document.getElementById('emptyState');
+
+      let filtered = allDrugs.filter(d => {
+        const matchKeyword = !keyword ||
+          d.name.toLowerCase().includes(keyword) ||
+          (d.generic_name || '').toLowerCase().includes(keyword) ||
+          (d.category || '').toLowerCase().includes(keyword);
+        return matchKeyword;
+      });
+
+      document.getElementById('resultCount').textContent = filtered.length;
+      grid.innerHTML = '';
+
+      if (filtered.length === 0) {
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+
+      filtered.forEach(drug => {
+        const card = document.createElement('div');
+        card.className = 'drug-card';
+        card.innerHTML = `
+          <span class="risk-tag">${drug.risk_level || 'สูง'}</span>
+          <h3>${drug.name}</h3>
+          <div class="generic-name">${drug.generic_name || ''}</div>
+          ${drug.pregnancy_category ? `<span class="preg-tag">PG: ${drug.pregnancy_category}</span>` : ''}
+          <p class="desc">${drug.description || ''}</p>
+        `;
+        card.addEventListener('click', () => openModal(drug));
+        grid.appendChild(card);
+      });
+    }
+
+    function openModal(drug) {
+      const content = document.getElementById('modalContent');
+      const precautionsList = (drug.precautions || []).map(p => `<li>${p}</li>`).join('');
+      content.innerHTML = `
+        <h2>${drug.name}</h2>
+        <div class="generic-name">${drug.generic_name || ''}</div>
+        ${drug.pregnancy_category ? `<span class="preg-tag">Pregnancy Category: ${drug.pregnancy_category}</span>` : ''}
+
+        <div class="modal-section">
+          <h4>📋 ข้อบ่งใช้</h4>
+          <p>${drug.indications || '-'}</p>
+        </div>
+
+        <div class="modal-section">
+          <h4>📝 รายละเอียด</h4>
+          <p>${drug.description || '-'}</p>
+        </div>
+
+        ${drug.pregnancy_note ? `
+        <div class="modal-section preg">
+          <h4>🤰 ข้อมูลสำหรับหญิงตั้งครรภ์</h4>
+          <p>${drug.pregnancy_note}</p>
+        </div>` : ''}
+
+        ${drug.mixing ? `
+        <div class="modal-section">
+          <h4>🧪 การผสมและการบริหารยา</h4>
+          <p>${drug.mixing}</p>
+        </div>` : ''}
+
+        ${drug.compatible_fluids ? `
+        <div class="modal-section">
+          <h4>💧 สารน้ำที่เข้ากันได้</h4>
+          <p>${drug.compatible_fluids}</p>
+        </div>` : ''}
+
+        <div class="modal-section danger">
+          <h4>⚠️ ข้อควรระวัง / High Alert</h4>
+          <ul>${precautionsList || '<li>-</li>'}</ul>
+        </div>
+
+        ${drug.contraindications ? `
+        <div class="modal-section danger">
+          <h4>🚫 ข้อห้ามใช้</h4>
+          <p>${drug.contraindications}</p>
+        </div>` : ''}
+
+        ${drug.monitoring ? `
+        <div class="modal-section">
+          <h4>👁️ การติดตามผู้ป่วย</h4>
+          <p>${drug.monitoring}</p>
+        </div>` : ''}
+
+        <div class="modal-section">
+          <h4>🔄 ปฏิกิริยาระหว่างยา</h4>
+          <p>${drug.interactions || '-'}</p>
+        </div>
+      `;
+      document.getElementById('modalOverlay').classList.add('show');
+    }
+
+    document.getElementById('modalClose').addEventListener('click', () => {
+      document.getElementById('modalOverlay').classList.remove('show');
+    });
+    document.getElementById('modalOverlay').addEventListener('click', (e) => {
+      if (e.target.id === 'modalOverlay') {
+        e.target.classList.remove('show');
+      }
+    });
+
+    document.getElementById('searchInput').addEventListener('input', renderDrugs);
+
+    loadDrugs();
+  </script>
+
+</body>
+</html>
