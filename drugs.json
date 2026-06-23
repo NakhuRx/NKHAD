@@ -296,7 +296,7 @@
     "description": "ใช้รักษาภาวะโพแทสเซียมในเลือดต่ำรุนแรง ห้ามฉีดแบบ IV push โดยเด็ดขาด",
     "indications": "Severe hypokalemia",
     "mixing": "ต้องเจือจางเสมอ ห้าม IV Push | Conc: Peripheral line < 40 mEq/L, Central line < 100 mEq/L",
-    "compatible_fluids": "NSS, D5W (ระวัง D5W อาจกระตุ้น insulin ทำให้อาจลด K+ ต่ำลงชั่วคราว)",
+    "compatible_fluids": "NSS, D5W ",
     "contraindications": "Hyperkalemia, Severe renal failure, Addison's disease",
     "monitoring": "ECG (หากให้ > 10 mEq/hr), Serum K+, IV site pain",
     "precautions": [
@@ -364,7 +364,7 @@
     "mixing": "การบริหาร: รับประทานวันละครั้ง เวลาเดียวกัน",
     "compatible_fluids": "-",
     "contraindications": "ภาวะเลือดออกรุนแรง, การผ่าตัดที่เพิ่งผ่านมา, ความดันโลหิตสูงที่คุมไม่ได้",
-    "monitoring": "PT/INR (Target 2-3), Bleeding signs, Drug/Food interactions",
+    "monitoring": "PT/INR (ดูตามTarget ), Bleeding signs, Drug/Food interactions",
     "precautions": [
       "ติดตามค่า PT/INR สม่ำเสมอ (Target 2-3)",
       "ห้ามใช้ในหญิงตั้งครรภ์ ยกเว้นกรณีใส่ลิ้นหัวใจเทียม",
